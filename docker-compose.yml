@@ -1,0 +1,100 @@
+version: '3.9'
+
+services:
+  app-parser:
+    image: "ad/parser"
+    build: https://github.com/sku4/ad-parser.git
+    hostname: parser.sku
+    restart: always
+    depends_on:
+      db-tnt-storage:
+        condition: service_healthy
+      db-tnt-replica:
+        condition: service_healthy
+
+  app-notifier:
+    image: "ad/notifier"
+    build: https://github.com/sku4/ad-notifier.git
+    hostname: notifier.sku
+    restart: always
+    depends_on:
+      db-tnt-storage:
+        condition: service_healthy
+      db-tnt-replica:
+        condition: service_healthy
+    environment:
+      - TELEGRAM_BOT_TOKEN
+
+  app-api:
+    image: "ad/api"
+    build: https://github.com/sku4/ad-api.git
+    hostname: api.sku
+    restart: always
+    depends_on:
+      db-tnt-storage:
+        condition: service_healthy
+      db-tnt-replica:
+        condition: service_healthy
+    ports:
+      - "8002:8000"
+    environment:
+      - HOST_URL
+      - TELEGRAM_BOT_TOKEN
+      - TELEGRAM_FEEDBACK_CHAT_ID
+
+  db-tnt-storage:
+    image: "ad/tnt/storage"
+    build: https://github.com/sku4/ad-tnt.git
+    hostname: storage.sku
+    environment:
+      TT_INSTANCE_NAME: 'storage'
+      TT_INSTANCE_PORT: 3301
+      TT_REPLICATION: "storage.sku:3301,replica.sku:3301"
+    volumes:
+      - /home/skubach/ad/storage:/usr/share/tarantool/ad/storage
+    ports:
+      - "3301:3301"
+
+  db-tnt-replica:
+    image: "ad/tnt/replica"
+    build: https://github.com/sku4/ad-tnt.git
+    hostname: replica.sku
+    environment:
+      TT_INSTANCE_NAME: 'replica'
+      TT_INSTANCE_PORT: 3301
+      TT_REPLICATION: "storage.sku:3301,replica.sku:3301"
+      TT_INSTANCE_RO: true
+    volumes:
+      - /home/skubach/ad/replica:/usr/share/tarantool/ad/replica
+    ports:
+      - "3302:3301"
+
+  prometheus:
+    image: "ad/prometheus"
+    build:
+      context: metrics
+      dockerfile: prometheus.dockerfile
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - /home/skubach/ad/metrics/prometheus:/prometheus
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    user: "1000" # id -u
+
+  grafana:
+    image: "ad/grafana"
+    build:
+      context: metrics
+      dockerfile: grafana.dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - /home/skubach/ad/metrics/grafana:/var/lib/grafana
+    links:
+      - prometheus
+    user: "1000" # id -u
+    environment:
+      - GF_SERVER_DOMAIN
