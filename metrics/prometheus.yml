@@ -1,7 +1,7 @@
 global:
-  scrape_interval: 2s
-  scrape_timeout: 2s
-  evaluation_interval: 1s # Evaluate rules
+  scrape_interval: 15m
+  scrape_timeout: 1m
+  evaluation_interval: 1m # Evaluate rules
 
 rule_files:
   - "alerts.yml"
