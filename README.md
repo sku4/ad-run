@@ -1,6 +1,8 @@
 # Run ads services
 Ads project created for receiving telegram bot notifications about current advertisements from websites, with a slight delay after their publication.
 
+Description of the implementation on [habr](https://habr.com/ru/companies/vk/articles/753898/).
+
 ## Run Project
 1. Set ```.env``` file
 2. Use ```docker compose up -d``` to build and run docker containers with application itself
