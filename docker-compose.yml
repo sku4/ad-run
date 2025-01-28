@@ -54,7 +54,6 @@ services:
       - /home/skubach/ad/storage:/usr/share/tarantool/ad/storage
     ports:
       - "3301:3301"
-
   db-tnt-replica:
     image: "ad/tnt/replica"
     build: https://github.com/sku4/ad-tnt.git
