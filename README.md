@@ -15,3 +15,4 @@ TELEGRAM_BOT_TOKEN=<token>
 TELEGRAM_FEEDBACK_CHAT_ID=<chat_id>
 GF_SERVER_DOMAIN=<domain>
 ```
+
