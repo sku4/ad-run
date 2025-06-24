@@ -100,7 +100,7 @@ EOF
 
     echo
     echo -e "${GREEN}creating secret for ad:${NC}"
-    kubectl create secret generic ad \
+    kubectl create secret generic ad-app \
             --from-literal="host_url"="<url>" \
             --from-literal="telegram_bot_token"="<token>" \
             --from-literal="telegram_feedback_chat_id"="<chat_id>" \
