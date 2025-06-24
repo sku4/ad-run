@@ -18,5 +18,5 @@ helm-install-local:
 helm-template:
 	helm template --name-template="ad-run" \
 		--namespace=ad-prod \
-		-f .helm/values-local.yaml .helm \
+		.helm \
 		> .helm/helm.txt

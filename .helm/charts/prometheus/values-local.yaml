@@ -1,0 +1,72 @@
+replicaCount: 1
+image:
+  repository: registry.digitalocean.com/sku4/repository
+  pullPolicy: IfNotPresent
+  tag: "prometheus-96a1b63"
+
+imagePullSecrets:
+  - name: regcred
+nameOverride: "prometheus"
+fullnameOverride: "prometheus"
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels:
+  app: prometheus
+
+podSecurityContext: {}
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  create: false
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+#livenessProbe:
+#  httpGet:
+#    path: /
+#    port: http
+#readinessProbe:
+#  httpGet:
+#    path: /
+#    port: http
+
+strategy:
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 1
+  type: RollingUpdate
+
+volumes:
+  - name: config
+    configMap:
+      name: prometheus-config
+
+volumeMounts:
+  - name: config
+    mountPath: /app/configs
+
+env: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
