@@ -3,4 +3,4 @@ type: application
 name: prometheus
 version: 1.0.0
 appVersion: "1.0.0"
-description: Service for parsing ads from websites
+description: An open-source monitoring system with a dimensional data model, flexible query language, efficient time series database and modern alerting approach.

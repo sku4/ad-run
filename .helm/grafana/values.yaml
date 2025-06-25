@@ -1,13 +1,13 @@
 replicaCount: 1
 image:
-  repository: prometheus
+  repository: grafana
   pullPolicy: IfNotPresent
   tag: ""
 
 imagePullSecrets:
   - name: regcred
-nameOverride: "prometheus"
-fullnameOverride: "prometheus"
+nameOverride: "grafana"
+fullnameOverride: "grafana"
 
 serviceAccount:
   create: true
@@ -17,7 +17,7 @@ serviceAccount:
 
 podAnnotations: {}
 podLabels:
-  app: prometheus
+  app: grafana
 
 podSecurityContext: {}
 securityContext: {}
@@ -31,8 +31,26 @@ securityContext: {}
 service:
   create: true
   type: ClusterIP
-  externalPort: 9090
-  internalPort: 9090
+  externalPort: 3000
+  internalPort: 3000
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: grafana.ad.gohome.run
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #    - hosts:
+  #        - alice.gohome.run
+  #      secretName: alice-gohome-run-tls
+  email: skubach@tut.by
 
 resources: {}
   # limits:
@@ -58,16 +76,21 @@ strategy:
   type: RollingUpdate
 
 volumes:
-  - name: prometheus-storage
+  - name: grafana-storage
     persistentVolumeClaim:
-      claimName: prometheus
+      claimName: grafana
 
 volumeMounts:
-  - name: prometheus-storage
-    mountPath: /prometheus
-    subPath: prometheus
+  - name: grafana-storage
+    mountPath: /var/lib/grafana
+    subPath: grafana
 
-env: {}
+env:
+  - name: GF_SERVER_DOMAIN
+    valueFrom:
+      secretKeyRef:
+        name: ad-app
+        key: gf_server_domain
 
 nodeSelector: {}
 
@@ -84,4 +107,4 @@ persistentVolume:
 
 storageClass:
   create: true
-  name: prometheus-storage
+  name: grafana-storage
