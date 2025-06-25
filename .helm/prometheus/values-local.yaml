@@ -1,8 +1,8 @@
 replicaCount: 1
 image:
-  repository: registry.digitalocean.com/sku4/repository
+  repository: skubach/skubach
   pullPolicy: IfNotPresent
-  tag: "prometheus-96a1b63"
+  tag: "160d59922d763"
 
 imagePullSecrets:
   - name: regcred
