@@ -19,7 +19,8 @@ podAnnotations: {}
 podLabels:
   app: grafana
 
-podSecurityContext: {}
+podSecurityContext:
+  runAsUser: 1000
 securityContext: {}
   # capabilities:
   #   drop:
