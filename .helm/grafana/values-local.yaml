@@ -92,4 +92,4 @@ persistentVolume:
 
 storageClass:
   create: true
-  name: grafana-storage
+  name: grafana

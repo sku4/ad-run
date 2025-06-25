@@ -2,7 +2,7 @@ replicaCount: 1
 image:
   repository: skubach/skubach
   pullPolicy: IfNotPresent
-  tag: "160d59922d763"
+  tag: "e227f19c0044"
 
 imagePullSecrets:
   - name: regcred
@@ -84,4 +84,4 @@ persistentVolume:
 
 storageClass:
   create: true
-  name: prometheus-storage
+  name: prometheus

@@ -84,4 +84,4 @@ persistentVolume:
 
 storageClass:
   create: true
-  name: prometheus-storage
+  name: prometheus
