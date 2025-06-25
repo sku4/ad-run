@@ -14,7 +14,7 @@ scrape_configs:
   - job_name: "ad-api"
     static_configs:
       - targets:
-        - "ad-api:80"
+        - "ad-api:8000"
   - job_name: "ad-notifier"
     static_configs:
       - targets:

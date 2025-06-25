@@ -1,14 +1,27 @@
 apiVersion: v1
 entries:
+  grafana:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2025-06-25T18:17:24.97292+03:00"
+    description: Grafana is an open-source platform used for querying, visualizing,
+      alerting on, and exploring metrics, logs, and traces, wherever they are stored.
+    digest: a74f2b3b031860ce726045ae4870ecfd5fa7b39bdd5d085de7ed9fac6cece02b
+    name: grafana
+    type: application
+    urls:
+    - https://raw.githubusercontent.com/sku4/ad-run/refs/heads/master/docs/charts/grafana-1.0.0.tgz
+    version: 1.0.0
   prometheus:
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2025-06-25T16:46:44.23897+03:00"
-    description: Service for parsing ads from websites
-    digest: 13d5d9812a8b9199af07e08f1860248a38a54e59c7bbd00ce381ffcd6647482c
+    created: "2025-06-25T18:17:24.973932+03:00"
+    description: An open-source monitoring system with a dimensional data model, flexible
+      query language, efficient time series database and modern alerting approach.
+    digest: a2ba4af12e9e0f8c1d9c10e8d30fff7f259d0c910c829f677819f9c927c683d9
     name: prometheus
     type: application
     urls:
     - https://raw.githubusercontent.com/sku4/ad-run/refs/heads/master/docs/charts/prometheus-1.0.0.tgz
     version: 1.0.0
-generated: "2025-06-25T16:46:44.238368+03:00"
+generated: "2025-06-25T18:17:24.971756+03:00"

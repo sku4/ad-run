@@ -1,13 +1,13 @@
 replicaCount: 1
 image:
-  repository: prometheus
+  repository: registry.digitalocean.com/sku4/repository
   pullPolicy: IfNotPresent
-  tag: ""
+  tag: "grafana-96a1b63"
 
 imagePullSecrets:
   - name: regcred
-nameOverride: "prometheus"
-fullnameOverride: "prometheus"
+nameOverride: "grafana"
+fullnameOverride: "grafana"
 
 serviceAccount:
   create: true
@@ -17,7 +17,7 @@ serviceAccount:
 
 podAnnotations: {}
 podLabels:
-  app: prometheus
+  app: grafana
 
 podSecurityContext: {}
 securityContext: {}
@@ -29,7 +29,13 @@ securityContext: {}
   # runAsUser: 1000
 
 service:
-  create: false
+  create: true
+  type: ClusterIP
+  externalPort: 3000
+  internalPort: 3000
+
+ingress:
+  enabled: false
 
 resources: {}
   # limits:
@@ -55,18 +61,35 @@ strategy:
   type: RollingUpdate
 
 volumes:
-  - name: config
-    configMap:
-      name: prometheus-config
+  - name: grafana-storage
+    persistentVolumeClaim:
+      claimName: grafana
 
 volumeMounts:
-  - name: config
-    mountPath: /app/configs
+  - name: grafana-storage
+    mountPath: /var/lib/grafana
+    subPath: grafana
 
-env: {}
+env:
+  - name: GF_SERVER_DOMAIN
+    valueFrom:
+      secretKeyRef:
+        name: ad-app
+        key: gf_server_domain
 
 nodeSelector: {}
 
 tolerations: []
 
 affinity: {}
+
+persistentVolume:
+  path: /mnt/metrics
+  nodeAffinity:
+    hostname:
+      - multitest
+  storage: 300Mi
+
+storageClass:
+  create: true
+  name: grafana
