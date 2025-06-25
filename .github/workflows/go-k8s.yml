@@ -57,7 +57,7 @@ jobs:
           if [ -n "$prevManifest" ]
           then
               echo "Previous digest manifest ${prevManifest}"
-              doctl registry repository delete-manifest --force $(echo $REPOSITORY) $(echo $prevManifest)
+              doctl registry repository delete-manifest --force ${{ env.repository }} $(echo $prevManifest)
               echo "Start garbage collection clean"
               doctl registry garbage-collection start --include-untagged-manifests --force             
           else
