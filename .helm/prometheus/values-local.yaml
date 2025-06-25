@@ -19,7 +19,8 @@ podAnnotations: {}
 podLabels:
   app: prometheus
 
-podSecurityContext: {}
+podSecurityContext:
+  runAsUser: 1000
 securityContext: {}
   # capabilities:
   #   drop:
