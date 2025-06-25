@@ -1,0 +1,190 @@
+name: ad
+
+on:
+  workflow_call:
+
+env:
+  run_git_url: https://github.com/sku4/ad-run.git
+  registry: registry.digitalocean.com/sku4
+  repository: repository
+  image_tnt_master: ad/tnt/master
+  image_tnt_replica: ad/tnt/replica
+  image_parser: ad/parser
+  image_notifier: ad/notifier
+  image_api: ad/api
+  image_prometheus: ad/prometheus
+  image_grafana: ad/grafana
+  sha: $(echo $GITHUB_SHA | head -c7)
+  
+jobs:
+  parser-check:
+    uses: sku4/ad-run/.github/workflows/go-check.yml@master
+    with:
+      repository: sku4/ad-parser
+
+  notifier-check:
+    uses: sku4/ad-run/.github/workflows/go-check.yml@master
+    with:
+      repository: sku4/ad-notifier
+
+  api-check:
+    uses: sku4/ad-run/.github/workflows/go-check.yml@master
+    with:
+      repository: sku4/ad-api
+
+  cd-build:
+    runs-on: ubuntu-latest
+    needs: [parser-check, notifier-check, api-check]
+
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v3
+        with:
+          repository: sku4/ad-run
+
+      - name: Build containers image
+        run: docker compose build --no-cache
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Log in to DigitalOcean Container Registry with short-lived credentials
+        run: doctl registry login --expiry-seconds 600
+
+      - name: Delete previous digest manifest
+        run: |
+          prevManifestMaster="$(doctl registry repository list-manifests repository \
+            --format Digest,Tags --no-header=true | grep master | cut -c1-72)"
+          prevManifestReplica="$(doctl registry repository list-manifests repository \
+            --format Digest,Tags --no-header=true | grep replica | cut -c1-72)"
+          prevManifestParser="$(doctl registry repository list-manifests repository \
+            --format Digest,Tags --no-header=true | grep parser | cut -c1-72)"
+          prevManifestNotifier="$(doctl registry repository list-manifests repository \
+            --format Digest,Tags --no-header=true | grep notifier | cut -c1-72)"
+          prevManifestApi="$(doctl registry repository list-manifests repository \
+            --format Digest,Tags --no-header=true | grep api | cut -c1-72)"
+          prevManifestPrometheus="$(doctl registry repository list-manifests repository \
+            --format Digest,Tags --no-header=true | grep prometheus | cut -c1-72)"
+          prevManifestGrafana="$(doctl registry repository list-manifests repository \
+            --format Digest,Tags --no-header=true | grep grafana | cut -c1-72)"
+          if [ -n "$prevManifestMaster" ]
+          then
+              echo "Previous digest manifest ${prevManifestMaster}"
+              doctl registry repository delete-manifest --force $(echo $REPOSITORY) $(echo $prevManifestMaster)
+          fi
+          if [ -n "$prevManifestReplica" ]
+          then
+              echo "Previous digest manifest ${prevManifestReplica}"
+              doctl registry repository delete-manifest --force $(echo $REPOSITORY) $(echo $prevManifestReplica)
+          fi
+          if [ -n "$prevManifestParser" ]
+          then
+              echo "Previous digest manifest ${prevManifestParser}"
+              doctl registry repository delete-manifest --force $(echo $REPOSITORY) $(echo $prevManifestParser)
+          fi
+          if [ -n "$prevManifestNotifier" ]
+          then
+              echo "Previous digest manifest ${prevManifestNotifier}"
+              doctl registry repository delete-manifest --force $(echo $REPOSITORY) $(echo $prevManifestNotifier)
+          fi
+          if [ -n "$prevManifestApi" ]
+          then
+              echo "Previous digest manifest ${prevManifestApi}"
+              doctl registry repository delete-manifest --force $(echo $REPOSITORY) $(echo $prevManifestApi)
+          fi
+          if [ -n "$prevManifestPrometheus" ]
+          then
+              echo "Previous digest manifest ${prevManifestPrometheus}"
+              doctl registry repository delete-manifest --force $(echo $REPOSITORY) $(echo $prevManifestPrometheus)
+          fi
+          if [ -n "$prevManifestGrafana" ]
+          then
+              echo "Previous digest manifest ${prevManifestGrafana}"
+              doctl registry repository delete-manifest --force $(echo $REPOSITORY) $(echo $prevManifestGrafana)
+          fi
+          if [ -n "$prevManifestMaster" ] || [ -n "$prevManifestReplica" ] ||
+              [ -n "$prevManifestParser" ] || [ -n "$prevManifestNotifier" ] ||
+              [ -n "$prevManifestApi" ] || [ -n "$prevManifestPrometheus" ] ||
+              [ -n "$prevManifestGrafana" ]
+          then
+              echo "Start garbage collection clean"
+              doctl registry garbage-collection start --include-untagged-manifests --force
+          else
+              echo "Not found previous digest manifest"
+          fi
+
+      - name: Push image to DigitalOcean Container Registry
+        run: |
+          docker images
+          docker image tag ${{ env.image_tnt_master }}:latest ${{ env.registry }}/${{ env.repository }}:master-${{ env.sha }}
+          docker image tag ${{ env.image_tnt_replica }}:latest ${{ env.registry }}/${{ env.repository }}:replica-${{ env.sha }}
+          docker image tag ${{ env.image_parser }}:latest ${{ env.registry }}/${{ env.repository }}:parser-${{ env.sha }}
+          docker image tag ${{ env.image_notifier }}:latest ${{ env.registry }}/${{ env.repository }}:notifier-${{ env.sha }}
+          docker image tag ${{ env.image_api }}:latest ${{ env.registry }}/${{ env.repository }}:api-${{ env.sha }}
+          docker image tag ${{ env.image_prometheus }}:latest ${{ env.registry }}/${{ env.repository }}:prometheus-${{ env.sha }}
+          docker image tag ${{ env.image_grafana }}:latest ${{ env.registry }}/${{ env.repository }}:grafana-${{ env.sha }}
+          docker image push ${{ env.registry }}/${{ env.repository }}:master-${{ env.sha }}
+          docker image push ${{ env.registry }}/${{ env.repository }}:replica-${{ env.sha }}
+          docker image push ${{ env.registry }}/${{ env.repository }}:parser-${{ env.sha }}
+          docker image push ${{ env.registry }}/${{ env.repository }}:notifier-${{ env.sha }}
+          docker image push ${{ env.registry }}/${{ env.repository }}:api-${{ env.sha }}
+          docker image push ${{ env.registry }}/${{ env.repository }}:prometheus-${{ env.sha }}
+          docker image push ${{ env.registry }}/${{ env.repository }}:grafana-${{ env.sha }}
+
+  cd-deploy:
+    runs-on: ubuntu-latest
+    needs: cd-build
+
+    steps:
+      - name: Deploy to Digital Ocean droplet via helm action
+        uses: actions/checkout@v3
+
+      - uses: azure/setup-kubectl@v4
+
+      - uses: azure/k8s-set-context@v4
+        with:
+          method: service-account
+          k8s-url: https://${{ secrets.HOST }}:6443
+          k8s-secret: ${{ secrets.K8S_SECRET_YAML }}
+
+      - uses: azure/setup-helm@v4.3.0
+        with:
+          version: '3.17.1'
+
+      - name: Helm chart upgrade
+        run: |
+          helm version
+          helm repo add --force-update ad-app https://raw.githubusercontent.com/sku4/ad-run/refs/heads/master/docs/charts/
+          helm repo add --force-update ad-tnt https://raw.githubusercontent.com/sku4/ad-tnt/refs/heads/master/docs/charts/
+          helm repo add --force-update ad-parser https://raw.githubusercontent.com/sku4/ad-parser/refs/heads/master/docs/charts/
+          helm repo add --force-update ad-notifier https://raw.githubusercontent.com/sku4/ad-notifier/refs/heads/master/docs/charts/
+          helm repo add --force-update ad-api https://raw.githubusercontent.com/sku4/ad-api/refs/heads/master/docs/charts/
+          helm repo update          
+          helm upgrade --install "prometheus" ad-app/prometheus --namespace=ad-prod --wait --timeout 300s --atomic --debug \
+            --set image.repository=${{ env.registry }}/${{ env.repository }} \
+            --set image.tag=prometheus-${{ env.sha }} \
+            --description "${{ env.sha }}"
+          helm upgrade --install "grafana" ad-app/grafana --namespace=ad-prod --wait --timeout 300s --atomic --debug \
+            --set image.repository=${{ env.registry }}/${{ env.repository }} \
+            --set image.tag=grafana-${{ env.sha }} \
+            --description "${{ env.sha }}"
+          helm upgrade --install "ad-tnt" ad-tnt/ad-tnt --namespace=ad-prod --wait --timeout 300s --atomic --debug \
+            --set imageMaster.repository=${{ env.registry }}/${{ env.repository }} \
+            --set imageMaster.tag=master-${{ env.sha }} \
+            --set imageReplica.repository=${{ env.registry }}/${{ env.repository }} \
+            --set imageReplica.tag=replica-${{ env.sha }} \
+            --description "${{ env.sha }}"
+          helm upgrade --install "ad-parser" ad-parser/ad-parser --namespace=ad-prod --wait --timeout 300s --atomic --debug \
+            --set image.repository=${{ env.registry }}/${{ env.repository }} \
+            --set image.tag=parser-${{ env.sha }} \
+            --description "${{ env.sha }}"
+          helm upgrade --install "ad-notifier" ad-notifier/ad-notifier --namespace=ad-prod --wait --timeout 300s --atomic --debug \
+            --set image.repository=${{ env.registry }}/${{ env.repository }} \
+            --set image.tag=notifier-${{ env.sha }} \
+            --description "${{ env.sha }}"
+          helm upgrade --install "ad-api" ad-api/ad-api --namespace=ad-prod --wait --timeout 300s --atomic --debug \
+            --set image.repository=${{ env.registry }}/${{ env.repository }} \
+            --set image.tag=api-${{ env.sha }} \
+            --description "${{ env.sha }}"

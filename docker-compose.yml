@@ -7,7 +7,7 @@ services:
     hostname: parser.sku
     restart: always
     depends_on:
-      db-tnt-storage:
+      db-tnt-master:
         condition: service_healthy
       db-tnt-replica:
         condition: service_healthy
@@ -18,7 +18,7 @@ services:
     hostname: notifier.sku
     restart: always
     depends_on:
-      db-tnt-storage:
+      db-tnt-master:
         condition: service_healthy
       db-tnt-replica:
         condition: service_healthy
@@ -31,7 +31,7 @@ services:
     hostname: api.sku
     restart: always
     depends_on:
-      db-tnt-storage:
+      db-tnt-master:
         condition: service_healthy
       db-tnt-replica:
         condition: service_healthy
@@ -42,16 +42,16 @@ services:
       - TELEGRAM_BOT_TOKEN
       - TELEGRAM_FEEDBACK_CHAT_ID
 
-  db-tnt-storage:
-    image: "ad/tnt/storage"
+  db-tnt-master:
+    image: "ad/tnt/master"
     build: https://github.com/sku4/ad-tnt.git
-    hostname: storage.sku
+    hostname: master.sku
     environment:
-      TT_INSTANCE_NAME: 'storage'
+      TT_INSTANCE_NAME: 'master'
       TT_INSTANCE_PORT: 3301
-      TT_REPLICATION: "storage.sku:3301,replica.sku:3301"
+      TT_REPLICATION: "master.sku:3301,replica.sku:3301"
     volumes:
-      - /home/skubach/ad/storage:/usr/share/tarantool/ad/storage
+      - /home/skubach/ad/storage/master:/usr/share/tarantool/ad/master
     ports:
       - "3301:3301"
 
@@ -62,7 +62,7 @@ services:
     environment:
       TT_INSTANCE_NAME: 'replica'
       TT_INSTANCE_PORT: 3301
-      TT_REPLICATION: "storage.sku:3301,replica.sku:3301"
+      TT_REPLICATION: "master.sku:3301,replica.sku:3301"
       TT_INSTANCE_RO: true
     volumes:
       - /home/skubach/ad/replica:/usr/share/tarantool/ad/replica

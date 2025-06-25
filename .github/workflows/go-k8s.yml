@@ -1,0 +1,100 @@
+name: go
+
+on:
+  workflow_call:
+    inputs:
+      image:
+        required: true
+        type: string
+      service:
+        required: true
+        type: string
+      prefix:
+        required: true
+        type: string
+      repository:
+        required: true
+        type: string
+
+env:
+  run_git_url: https://github.com/sku4/ad-run.git
+  registry: registry.digitalocean.com/sku4
+  repository: repository
+  sha: $(echo $GITHUB_SHA | head -c7)
+  
+jobs:
+  go-check:
+    uses: sku4/ad-run/.github/workflows/go-check.yml@master
+    with:
+      repository: ${{ inputs.repository }}
+
+  cd-build:
+    runs-on: ubuntu-latest
+    needs: go-check
+
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v3
+        with:
+          repository: sku4/ad-run
+
+      - name: Build container image
+        run: |
+          docker compose build --no-cache ${{ inputs.service }}
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Log in to DigitalOcean Container Registry with short-lived credentials
+        run: doctl registry login --expiry-seconds 600
+
+      - name: Delete previous digest manifest
+        run: |
+          prevManifest="$(doctl registry repository list-manifests repository \
+            --format Digest,Tags --no-header=true | grep ${{ inputs.prefix }} | cut -c1-72)"
+          if [ -n "$prevManifest" ]
+          then
+              echo "Previous digest manifest ${prevManifest}"
+              doctl registry repository delete-manifest --force $(echo $REPOSITORY) $(echo $prevManifest)
+              echo "Start garbage collection clean"
+              doctl registry garbage-collection start --include-untagged-manifests --force             
+          else
+              echo "Not found previous digest manifest"
+          fi
+
+      - name: Push image to DigitalOcean Container Registry
+        run: |
+          docker image tag ${{ inputs.image }}:latest ${{ env.registry }}/${{ env.repository }}:${{ inputs.prefix }}-${{ env.sha }}
+          docker image push ${{ env.registry }}/${{ env.repository }}:${{ inputs.prefix }}-${{ env.sha }}
+
+  cd-deploy:
+    runs-on: ubuntu-latest
+    needs: cd-build
+
+    steps:
+      - name: Deploy to Digital Ocean droplet via helm action
+        uses: actions/checkout@v3
+
+      - uses: azure/setup-kubectl@v4
+
+      - uses: azure/k8s-set-context@v4
+        with:
+          method: service-account
+          k8s-url: https://${{ secrets.HOST }}:6443
+          k8s-secret: ${{ secrets.K8S_SECRET_YAML }}
+
+      - uses: azure/setup-helm@v4.3.0
+        with:
+          version: '3.17.1'
+
+      - name: Helm chart upgrade
+        run: |
+          helm version
+          helm repo add --force-update ad-${{ inputs.prefix }} https://raw.githubusercontent.com/sku4/ad-${{ inputs.prefix }}/refs/heads/master/docs/charts/
+          helm repo update          
+          helm upgrade --install "ad-${{ inputs.prefix }}" ad-${{ inputs.prefix }}/ad-${{ inputs.prefix }} --namespace=ad-prod --wait --timeout 300s --atomic --debug \
+            --set image.repository=${{ env.registry }}/${{ env.repository }} \
+            --set image.tag=${{ inputs.prefix }}-${{ env.sha }} \
+            --description "${{ env.sha }}"
