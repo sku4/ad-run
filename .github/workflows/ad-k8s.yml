@@ -111,6 +111,7 @@ jobs:
           then
               echo "Start garbage collection clean"
               doctl registry garbage-collection start --include-untagged-manifests --force
+              sleep 5m
           else
               echo "Not found previous digest manifest"
           fi
