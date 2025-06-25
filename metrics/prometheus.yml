@@ -10,12 +10,12 @@ scrape_configs:
   # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
   - job_name: "prometheus"
     static_configs:
-      - targets: ["localhost:9090"]
+      - targets: ["prometheus:9090"]
   - job_name: "ad-api"
     static_configs:
       - targets:
-        - "api.sku:8000"
+        - "ad-api:80"
   - job_name: "ad-notifier"
     static_configs:
       - targets:
-        - "notifier.sku:8000"
+        - "ad-notifier:8000"

@@ -1,0 +1,87 @@
+replicaCount: 1
+image:
+  repository: prometheus
+  pullPolicy: IfNotPresent
+  tag: ""
+
+imagePullSecrets:
+  - name: regcred
+nameOverride: "prometheus"
+fullnameOverride: "prometheus"
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels:
+  app: prometheus
+
+podSecurityContext: {}
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  create: true
+  type: ClusterIP
+  externalPort: 9090
+  internalPort: 9090
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+#livenessProbe:
+#  httpGet:
+#    path: /
+#    port: http
+#readinessProbe:
+#  httpGet:
+#    path: /
+#    port: http
+
+strategy:
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 1
+  type: RollingUpdate
+
+volumes:
+  - name: prometheus-storage
+    persistentVolumeClaim:
+      claimName: prometheus
+
+volumeMounts:
+  - name: prometheus-storage
+    mountPath: /prometheus
+    subPath: prometheus
+
+env: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+persistentVolume:
+  path: /home/skubach/ad/metrics
+  nodeAffinity:
+    hostname:
+      - node1.internal
+  storage: 500Mi
+
+storageClass:
+  create: true
+  name: prometheus-storage
