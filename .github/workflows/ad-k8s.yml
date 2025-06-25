@@ -72,37 +72,37 @@ jobs:
           if [ -n "$prevManifestMaster" ]
           then
               echo "Previous digest manifest ${prevManifestMaster}"
-              doctl registry repository delete-manifest --force $(echo $REPOSITORY) $(echo $prevManifestMaster)
+              doctl registry repository delete-manifest --force ${{ env.repository }} $(echo $prevManifestMaster)
           fi
           if [ -n "$prevManifestReplica" ]
           then
               echo "Previous digest manifest ${prevManifestReplica}"
-              doctl registry repository delete-manifest --force $(echo $REPOSITORY) $(echo $prevManifestReplica)
+              doctl registry repository delete-manifest --force ${{ env.repository }} $(echo $prevManifestReplica)
           fi
           if [ -n "$prevManifestParser" ]
           then
               echo "Previous digest manifest ${prevManifestParser}"
-              doctl registry repository delete-manifest --force $(echo $REPOSITORY) $(echo $prevManifestParser)
+              doctl registry repository delete-manifest --force ${{ env.repository }} $(echo $prevManifestParser)
           fi
           if [ -n "$prevManifestNotifier" ]
           then
               echo "Previous digest manifest ${prevManifestNotifier}"
-              doctl registry repository delete-manifest --force $(echo $REPOSITORY) $(echo $prevManifestNotifier)
+              doctl registry repository delete-manifest --force ${{ env.repository }} $(echo $prevManifestNotifier)
           fi
           if [ -n "$prevManifestApi" ]
           then
               echo "Previous digest manifest ${prevManifestApi}"
-              doctl registry repository delete-manifest --force $(echo $REPOSITORY) $(echo $prevManifestApi)
+              doctl registry repository delete-manifest --force ${{ env.repository }} $(echo $prevManifestApi)
           fi
           if [ -n "$prevManifestPrometheus" ]
           then
               echo "Previous digest manifest ${prevManifestPrometheus}"
-              doctl registry repository delete-manifest --force $(echo $REPOSITORY) $(echo $prevManifestPrometheus)
+              doctl registry repository delete-manifest --force ${{ env.repository }} $(echo $prevManifestPrometheus)
           fi
           if [ -n "$prevManifestGrafana" ]
           then
               echo "Previous digest manifest ${prevManifestGrafana}"
-              doctl registry repository delete-manifest --force $(echo $REPOSITORY) $(echo $prevManifestGrafana)
+              doctl registry repository delete-manifest --force ${{ env.repository }} $(echo $prevManifestGrafana)
           fi
           if [ -n "$prevManifestMaster" ] || [ -n "$prevManifestReplica" ] ||
               [ -n "$prevManifestParser" ] || [ -n "$prevManifestNotifier" ] ||
