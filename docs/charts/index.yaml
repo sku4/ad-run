@@ -1,15 +1,14 @@
 apiVersion: v1
 entries:
-  ad-app:
+  prometheus:
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2025-06-25T15:29:54.932266+03:00"
-    description: Ads project created for receiving telegram bot notifications about
-      current advertisements from websites, with a slight delay after their publication.
-    digest: d0c74a846bb0b5c235e20542c14ba1786e5325dd8863dc1864abd86ed77c2efb
-    name: ad-app
+    created: "2025-06-25T16:46:44.23897+03:00"
+    description: Service for parsing ads from websites
+    digest: 13d5d9812a8b9199af07e08f1860248a38a54e59c7bbd00ce381ffcd6647482c
+    name: prometheus
     type: application
     urls:
-    - https://raw.githubusercontent.com/sku4/ad-run/refs/heads/master/docs/charts/ad-app-1.0.0.tgz
+    - https://raw.githubusercontent.com/sku4/ad-run/refs/heads/master/docs/charts/prometheus-1.0.0.tgz
     version: 1.0.0
-generated: "2025-06-25T15:29:54.931647+03:00"
+generated: "2025-06-25T16:46:44.238368+03:00"
