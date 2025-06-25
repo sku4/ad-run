@@ -1,6 +1,6 @@
 apiVersion: v2
 type: application
-name: ad-run
+name: ad-app
 version: 1.0.0
 appVersion: "1.0.0"
 description: Ads project created for receiving telegram bot notifications about current advertisements from websites, with a slight delay after their publication.
